@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculadora Científica Hyper-Pro</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/12.4.0/math.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        body { background-color: #0f111a; color: #a6accd; font-family: 'Fira Code', monospace; }
+        .card-calc { background-color: #1a1c23; border: 1px solid #2d3139; border-radius: 16px; box-shadow: 0 20px 50px rgba(0,0,0,0.6); }
+        .screen-container { background-color: #0b0c10; border: 1px solid #3f444a; border-radius: 12px; padding: 15px; }
+        #formulaDisplay { font-size: 1.1rem; color: #676e95; min-height: 27px; text-align: left; }
+        #mainDisplay { font-size: 2.5rem; color: #82aaff; font-weight: bold; text-align: right; overflow-x: auto; white-space: nowrap; }
+        .btn-calc { padding: 12px; font-size: 0.95rem; font-weight: 600; border-radius: 8px; border: none; transition: all 0.15s ease-in-out; }
+        .btn-calc:hover { filter: brightness(1.3); transform: translateY(-1px); }
+        .btn-num { background-color: #2e303e; color: #ffffff; }
+        .btn-op { background-color: #f78c6c; color: #1a1c23; }
+        .btn-sci { background-color: #232634; color: #c3e88d; font-size: 0.85rem; }
+        .btn-cmd { background-color: #ff5370; color: white; }
+        .btn-mem { background-color: #bb80ff; color: #1a1c23; font-size: 0.8rem; }
+        .nav-tabs .nav-link { color: #676e95; border: none; }
+        .nav-tabs .nav-link.active { background-color: #1a1c23; color: #82aaff; border-bottom: 2px solid #82aaff; }
+        .history-scroll, .mem-scroll { max-height: 350px; overflow-y: auto; }
+        .badge-mem { background-color: #bb80ff; color: #1a1c23; }
+    </style>
+</head>
+<body class="py-4">
+
+<div class="container">
+    <div class="row g-4">
+        <div class="col-xl-8 col-lg-7">
+            <div class="card-calc p-4">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h4 class="text-white m-0"><i class="bi bi-calculator-fill text-warning me-2"></i>CALCULADORA CIENTÍFICA CHIDA :)</h4>
+                    <span id="angleMode" class="badge bg-primary px-3 py-2" style="cursor:pointer;" onclick="toggleAngleMode()">DEG</span>
+                </div>
+
+                <div class="screen-container mb-4">
+                    <div id="formulaDisplay" class="text-truncate"></div>
+                    <div id="mainDisplay">0</div>
+                </div>
+
+                <div class="row g-2">
+                    <div class="col-2"><button class="btn btn-calc btn-mem w-100" onclick="handleMemory('MS')">MS</button></div>
+                    <div class="col-2"><button class="btn btn-calc btn-mem w-100" onclick="handleMemory('MR')">MR</button></div>
+                    <div class="col-2"><button class="btn btn-calc btn-mem w-100" onclick="handleMemory('MC')">MC</button></div>
+                    <div class="col-2"><button class="btn btn-calc btn-sci w-100" onclick="insert('x')">x</button></div>
+                    <div class="col-2"><button class="btn btn-calc btn-cmd w-100" onclick="deleteLast()"><i class="bi bi-backspace"></i></button></div>
+                    <div class="col-2"><button class="btn btn-calc btn-cmd w-100" onclick="clearAll()">AC</button></div>
+
+                    <div class="col-2"><button class="btn btn-calc btn-sci w-100" onclick="insert('sin(')">sin</button></div>
+                    <div class="col-2"><button class="btn btn-calc btn-sci w-100" onclick="insert('cos(')">cos</button></div>
+                    <div class="col-2"><button class="btn btn-calc btn-sci w-100" onclick="insert('tan(')">tan</button></div>
+                    <div class="col-2"><button class="btn btn-calc btn-sci w-100" onclick="insert('^')">xʸ</button></div>
+                    <div class="col-2"><button class="btn btn-calc btn-sci w-100" onclick="insert('sqrt(')">√</button></div>
+                    <div class="col-2"><button class="btn btn-calc btn-op w-100" onclick="insert('/')">/</button></div>
+
+                    <div class="col-2"><button class="btn btn-calc btn-sci w-100" onclick="insert('asin(')">asin</button></div>
+                    <div class="col-2"><button class="btn btn-calc btn-sci w-100" onclick="insert('acos(')">acos</button></div>
+                    <div class="col-2"><button class="btn btn-calc btn-sci w-100" onclick="insert('atan(')">atan</button></div>
+                    <div class="col-2"><button class="btn btn-calc btn-sci w-100" onclick="insert('log(')">log₁₀</button></div>
+                    <div class="col-2"><button class="btn btn-calc btn-sci w-100" onclick="insert('ln(')">ln</button></div>
+                    <div class="col-2"><button class="btn btn-calc btn-op w-100" onclick="insert('*')">×</button></div>
+
+                    <div class="col-2"><button class="btn btn-calc btn-sci w-100" onclick="insert('sinh(')">sinh</button></div>
+                    <div class="col-2"><button class="btn btn-calc btn-num w-100" onclick="insert('7')">7</button></div>
+                    <div class="col-2"><button class="btn btn-calc btn-num w-100" onclick="insert('8')">8</button></div>
+                    <div class="col-2"><button class="btn btn-calc btn-num w-100" onclick="insert('9')">9</button></div>
+                    <div class="col-2"><button class="btn btn-calc btn-sci w-100" onclick="insert('!')">n!</button></div>
+                    <div class="col-2"><button class="btn btn-calc btn-op w-100" onclick="insert('-')">-</button></div>
+
+                    <div class="col-2"><button class="btn btn-calc btn-sci w-100" onclick="insert('cosh(')">cosh</button></div>
+                    <div class="col-2"><button class="btn btn-calc btn-num w-100" onclick="insert('4')">4</button></div>
+                    <div class="col-2"><button class="btn btn-calc btn-num w-100" onclick="insert('5')">5</button></div>
+                    <div class="col-2"><button class="btn btn-calc btn-num w-100" onclick="insert('6')">6</button></div>
+                    <div class="col-2"><button class="btn btn-calc btn-sci w-100" onclick="insert('pi')">π</button></div>
+                    <div class="col-2"><button class="btn btn-calc btn-op w-100" onclick="insert('+')">+</button></div>
+
+                    <div class="col-2"><button class="btn btn-calc btn-sci w-100" onclick="insert('tanh(')">tanh</button></div>
+                    <div class="col-2"><button class="btn btn-calc btn-num w-100" onclick="insert('1')">1</button></div>
+                    <div class="col-2"><button class="btn btn-calc btn-num w-100" onclick="insert('2')">2</button></div>
+                    <div class="col-2"><button class="btn btn-calc btn-num w-100" onclick="insert('3')">3</button></div>
+                    <div class="col-2"><button class="btn btn-calc btn-sci w-100" onclick="insert('e')">e</button></div>
+                    <div class="col-2" class="align-self-stretch" style="grid-row: span 2;"><button class="btn btn-calc btn-op w-100 h-100" style="background-color: #82aaff; color: #1a1c23;" onclick="evaluateExpression()">=</button></div>
+
+                    <div class="col-2"><button class="btn btn-calc btn-sci w-100" onclick="insert('(')">(</button></div>
+                    <div class="col-2"><button class="btn btn-calc btn-sci w-100" onclick="insert(')')">)</button></div>
+                    <div class="col-2"><button class="btn btn-calc btn-num w-100" onclick="insert('0')">0</button></div>
+                    <div class="col-2"><button class="btn btn-calc btn-num w-100" onclick="insert('.')">.</button></div>
+                    <div class="col-2"><button class="btn btn-calc btn-sci w-100" onclick="insert('%')">%</button></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-4 col-lg-5">
+            <div class="card-calc p-3 h-100">
+                <ul class="nav nav-tabs mb-3" id="calcTabs" role="tablist">
+                    <li class="nav-item"><button class="nav-link active" id="hist-tab" data-bs-toggle="tab" data-bs-target="#histPanel">Historial</button></li>
+                    <li class="nav-item"><button class="nav-link" id="graph-tab" data-bs-toggle="tab" data-bs-target="#graphPanel">Graficador f(x)</button></li>
+                    <li class="nav-item"><button class="nav-link" id="stats-tab" data-bs-toggle="tab" data-bs-target="#statsPanel">Estadística</button></li>
+                </ul>
+                
+                <div class="tab-content">
+                    <div class="tab-pane fade show active" id="histPanel">
+                        <div class="history-scroll" id="historyList">
+                            <p class="text-muted text-center py-4">Sin operaciones en caché.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="tab-pane fade" id="graphPanel">
+                        <small class="text-muted block mb-2">Escribe una función con 'x' (Ej: <code>sin(x)</code> o <code>x^2 - 3</code>) y pulsa graficar.</small>
+                        <button class="btn btn-sm btn-outline-success w-100 mb-2" onclick="plotGraph()">Graficar Expresión Actual</button>
+                        <div style="position: relative; height:250px; width:100%">
+                            <canvas id="graphCanvas"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="tab-pane fade" id="statsPanel">
+                        <label class="form-label small text-white">Ingresa valores separados por coma (,)</label>
+                        <input type="text" id="statsInput" class="form-control bg-dark text-white border-secondary mb-2" placeholder="10, 20, 15, 30, 22">
+                        <button class="btn btn-sm btn-primary w-100 mb-3" onclick="calculateStats()">Calcular Dataset</button>
+                        <div id="statsResults" class="small">
+                            </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    let expression = "";
+    let memoryValue = 0;
+    let currentAngleMode = 'DEG'; // DEG o RAD
+    let history = [];
+    let chartInstance = null;
+
+    const mainDisplay = document.getElementById('mainDisplay');
+    const formulaDisplay = document.getElementById('formulaDisplay');
+
+    function insert(val) {
+        expression += val;
+        formulaDisplay.innerText = expression;
+    }
+
+    function clearAll() {
+        expression = "";
+        formulaDisplay.innerText = "";
+        mainDisplay.innerText = "0";
+    }
+
+    function deleteLast() {
+        expression = expression.slice(0, -1);
+        formulaDisplay.innerText = expression || "0";
+    }
+
+    function toggleAngleMode() {
+        currentAngleMode = (currentAngleMode === 'DEG') ? 'RAD' : 'DEG';
+        document.getElementById('angleMode').innerText = currentAngleMode;
+    }
+
+    // El motor de cálculo principal usando Math.js
+    function evaluateExpression() {
+        if (!expression) return;
+        try {
+            let processedExpr = expression;
+
+            // Configuración dinámica para Grados / Radianes en funciones trigonométricas
+            if (currentAngleMode === 'DEG') {
+                // Reemplaza funciones trigonométricas comunes para interceptar el valor y transformarlo a grados si mathjs lo requiere en Radianes
+                // Math.js permite configurar la unidad directamente usando strings modificados internamente:
+                processedExpr = processedExpr.replace(/sin\((.*?)\)/g, 'sin($1 deg)');
+                processedExpr = processedExpr.replace(/cos\((.*?)\)/g, 'cos($1 deg)');
+                processedExpr = processedExpr.replace(/tan\((.*?)\)/g, 'tan($1 deg)');
+            }
+
+            let result = math.evaluate(processedExpr);
+            
+            // Redondear a un límite flotante aceptable para evitar errores JS de precisión
+            if (typeof result === 'number') {
+                result = math.format(result, { precision: 14 });
+            }
+
+            mainDisplay.innerText = result;
+            history.unshift({ expr: expression, res: result });
+            updateHistoryHTML();
+        } catch (error) {
+            mainDisplay.innerText = "Error de Sintaxis";
+        }
+    }
+
+    // Manejo de Memoria de Ingeniería
+    function handleMemory(action) {
+        let currentVal = parseFloat(mainDisplay.innerText) || 0;
+        if (action === 'MS') {
+            memoryValue = currentVal;
+            alert(`Guardado en memoria: ${memoryValue}`);
+        } else if (action === 'MR') {
+            expression += memoryValue.toString();
+            formulaDisplay.innerText = expression;
+        } else if (action === 'MC') {
+            memoryValue = 0;
+            alert("Memoria limpia");
+        }
+    }
+
+    function updateHistoryHTML() {
+        const histContainer = document.getElementById('historyList');
+        histContainer.innerHTML = history.map(item => `
+            <div class="p-2 border-bottom border-secondary text-end style="cursor:pointer;" onclick="reuseHistory('${item.expr}')">
+                <div class="small text-muted">${item.expr}</div>
+                <div class="fw-bold text-info">${item.res}</div>
+            </div>
+        `).join('');
+    }
+
+    function reuseHistory(expr) {
+        expression = expr;
+        formulaDisplay.innerText = expression;
+    }
+
+    // MÓDULO AVANZADO 1: Motor Estadístico Completo
+    function calculateStats() {
+        const input = document.getElementById('statsInput').value;
+        if(!input) return;
+        try {
+            // Convierte la entrada string en un array numérico limpio de JS
+            const array = input.split(',').map(x => parseFloat(x.trim())).filter(x => !isNaN(x));
+            if(array.length === 0) return;
+
+            const mean = math.mean(array);
+            const median = math.median(array);
+            const stdDev = math.std(array);
+            const variance = math.variance(array);
+            const sum = math.sum(array);
+
+            document.getElementById('statsResults').innerHTML = `
+                <table class="table table-dark table-sm table-bordered mt-2">
+                    <tr><td>Muestra (N)</td><td class="text-warning">${array.length}</td></tr>
+                    <tr><td>Media (μ)</td><td class="text-warning">${mean.toFixed(4)}</td></tr>
+                    <tr><td>Mediana</td><td class="text-warning">${median}</td></tr>
+                    <tr><td>Desv. Estándar (σ)</td><td class="text-warning">${stdDev.toFixed(4)}</td></tr>
+                    <tr><td>Varianza</td><td class="text-warning">${variance.toFixed(4)}</td></tr>
+                    <tr><td>Sumatoria (Σ)</td><td class="text-warning">${sum}</td></tr>
+                </table>
+            `;
+        } catch (e) {
+            document.getElementById('statsResults').innerHTML = `<span class="text-danger">Dataset inválido.</span>`;
+        }
+    }
+
+    // MÓDULO AVANZADO 2: Renderizador Gráfico 2D
+    function plotGraph() {
+        if (!expression) { alert("Introduce una función con 'x' primero"); return; }
+        
+        const ctx = document.getElementById('graphCanvas').getContext('2d');
+        const xValues = [];
+        const yValues = [];
+
+        try {
+            // Compila la expresión una vez para máxima velocidad de ejecución en el bucle
+            const compiledExpr = math.compile(expression);
+
+            // Generar un rango numérico denso de -10 a 10 para 'x'
+            for (let x = -10; x <= 10; x += 0.5) {
+                xValues.push(x);
+                let scope = { x: x };
+                let y = compiledExpr.evaluate(scope);
+                yValues.push(y);
+            }
+
+            if (chartInstance) chartInstance.destroy(); // Limpiar gráfico anterior
+
+            chartInstance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: xValues,
+                    datasets: [{
+                        label: `f(x) = ${expression}`,
+                        data: yValues,
+                        borderColor: '#c3e88d',
+                        borderWidth: 2,
+                        fill: false,
+                        pointRadius: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: { grid: { color: '#2d3139' }, ticks: { color: '#a6accd' } },
+                        y: { grid: { color: '#2d3139' }, ticks: { color: '#a6accd' } }
+                    },
+                    plugins: { legend: { labels: { color: '#ffffff' } } }
+                }
+            });
+        } catch (error) {
+            alert("La expresión actual no es una función f(x) válida para graficación.");
+        }
+    }
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
